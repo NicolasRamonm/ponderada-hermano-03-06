@@ -1,6 +1,6 @@
 # Checklist de rastreabilidade dos requisitos
 
-Este arquivo mapeia cada requisito do `must-do.md` para a evidência correspondente no repositório.
+Este arquivo mapeia cada requisito para evidência correspondente no repositório.
 
 | Requisito | Status | Evidência |
 |---|---|---|
@@ -46,16 +46,13 @@ Este arquivo mapeia cada requisito do `must-do.md` para a evidência corresponde
 | Relatório técnico Markdown | Feito | [`reports/relatorio.md`](./relatorio.md) |
 | Links das execuções reais | Feito | Seção "Execuções reais do GitHub Actions" do relatório |
 | IDs reais dos workflows | Feito | Run IDs `27102177249` a `27102240744` no relatório |
-| Commits reais usados | Feito | Seção "Commits usados" do relatório |
 | Explicação das variações | Feito | Seções "Desenho do experimento" e "Execuções reais" |
 | Gráficos a partir dos dados coletados | Feito | Arquivos em [`charts/`](../charts) gerados por `generate_charts.py` |
 | Dois resultados inesperados | Feito | Seção "Resultados inesperados" possui três itens |
 | Hipótese vs resultado observado | Feito | Seção "Comparação entre hipótese e resultado observado" |
 | Limitações do experimento | Feito | Subseção "Quais limitações existem nos dados coletados?" |
-| Padrão de branch sem prefixo proibido | Feito | Branch `experimento-ci-base-livre` |
-| Commits ligados à conta do aluno | Feito | Commits autorados por `Nicolas Ramon da Silva <nnicolasramonn@gmail.com>` |
 
-## Evidências adicionais além do mínimo
+## Outro
 
 | Incremento | Evidência |
 |---|---|
