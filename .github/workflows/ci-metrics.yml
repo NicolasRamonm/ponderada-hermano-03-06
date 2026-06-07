@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - experimento-ci-metricas
+      - experimento-ci-base-livre
   workflow_dispatch:
 
 permissions:

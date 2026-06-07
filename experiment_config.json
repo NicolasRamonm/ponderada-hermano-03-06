@@ -1,9 +1,9 @@
 {
-  "scenario": "final-green",
+  "scenario": "baseline-pass",
   "execution_mode": "parallel",
-  "extra_test_cases": 10,
+  "extra_test_cases": 0,
   "slow_test_ms": 0,
   "intentional_failure": false,
-  "cache_buster": "v2",
-  "notes": "Execucao final verde com pequena carga extra para encerrar a serie de medicoes."
+  "cache_buster": "v1",
+  "notes": "Baseline da nova base PyPA sampleproject com testes passando e jobs paralelos."
 }
