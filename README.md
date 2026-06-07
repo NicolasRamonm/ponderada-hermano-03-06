@@ -94,14 +94,13 @@ Para simular falha controlada:
 O workflow roda em pushes para:
 
 - `main`
-- `experimento-ci-metricas`
 - `experimento-ci-base-livre`
 
 Também pode ser disparado manualmente por `workflow_dispatch` na interface do GitHub Actions.
 
 ## Como reproduzir o experimento completo
 
-1. Use a branch `experimento-ci-base-livre`.
+1. Use a branch de experimento publicada, `experimento-ci-base-livre`, ou `main` apos o merge.
 2. Faça um commit inicial com o cenário `baseline-pass`.
 3. Altere `experiment_config.json` para cada variação controlada.
 4. Faça um commit e um push por variação.
