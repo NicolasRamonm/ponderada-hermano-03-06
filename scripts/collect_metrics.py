@@ -31,6 +31,12 @@ def seconds_between(start: str | None, end: str | None) -> float:
     return round((completed - started).total_seconds(), 3)
 
 
+def seconds_between_datetimes(start: datetime | None, end: datetime | None) -> float:
+    if not start or not end:
+        return 0.0
+    return round((end - start).total_seconds(), 3)
+
+
 class GitHubClient:
     def __init__(self, token: str | None) -> None:
         self.session = requests.Session()
@@ -112,6 +118,127 @@ def normalize_cache_hit(summary: dict[str, Any] | None) -> str:
     return "true" if str(summary.get("cache_hit", "")).lower() == "true" else "false"
 
 
+def percentile(values: list[float], percentile_value: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    index = (len(ordered) - 1) * percentile_value
+    lower = int(index)
+    upper = min(lower + 1, len(ordered) - 1)
+    weight = index - lower
+    return round(ordered[lower] * (1 - weight) + ordered[upper] * weight, 3)
+
+
+def first_non_empty(rows: list[dict[str, Any]], key: str) -> str:
+    for row in rows:
+        value = str(row.get(key, "")).strip()
+        if value:
+            return value
+    return ""
+
+
+def max_numeric(rows: list[dict[str, Any]], key: str) -> float:
+    values = [float(row.get(key, 0) or 0) for row in rows]
+    return round(max(values), 3) if values else 0.0
+
+
+def sum_numeric(rows: list[dict[str, Any]], key: str) -> float:
+    return round(sum(float(row.get(key, 0) or 0) for row in rows), 3)
+
+
+def build_run_summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[str(row["run_id"])].append(row)
+
+    summary_rows: list[dict[str, Any]] = []
+    for run_id, run_rows in grouped.items():
+        first = run_rows[0]
+        active_rows = [row for row in run_rows if row.get("job_status") != "skipped"]
+        measured_rows = [
+            row
+            for row in active_rows
+            if row.get("job_name") != "read-config" and row.get("scenario")
+        ]
+        failure_type = first_non_empty(
+            [row for row in measured_rows if row.get("failure_type") not in {"", "none"}],
+            "failure_type",
+        )
+        summary_rows.append(
+            {
+                "run_id": run_id,
+                "run_number": first["run_number"],
+                "run_attempt": first["run_attempt"],
+                "run_url": first["run_url"],
+                "commit_sha": first["commit_sha"],
+                "commit_message": first["commit_message"],
+                "status": first["status"],
+                "timestamp": first["timestamp"],
+                "completed_at": first["completed_at"],
+                "workflow_duration_seconds": first["workflow_duration_seconds"],
+                "queue_duration_seconds": first["queue_duration_seconds"],
+                "lead_time_seconds": first["lead_time_seconds"],
+                "scenario": first_non_empty(measured_rows, "scenario"),
+                "execution_mode": first_non_empty(measured_rows, "execution_mode"),
+                "test_count": int(max_numeric(measured_rows, "test_count")),
+                "test_failures": int(max_numeric(measured_rows, "test_failures")),
+                "test_average_seconds": max_numeric(measured_rows, "test_average_seconds"),
+                "active_job_count": len(active_rows),
+                "critical_job_duration_seconds": max_numeric(active_rows, "job_duration_seconds"),
+                "install_duration_seconds": max_numeric(measured_rows, "install_duration_seconds"),
+                "lint_duration_seconds": max_numeric(measured_rows, "lint_duration_seconds"),
+                "test_duration_seconds": max_numeric(measured_rows, "test_duration_seconds"),
+                "artifact_size_bytes": int(sum_numeric(measured_rows, "artifact_size_bytes")),
+                "cache_saved_seconds_estimate": max_numeric(
+                    measured_rows, "cache_saved_seconds_estimate"
+                ),
+                "failure_type": failure_type or "none",
+                "attempts_until_green": first["attempts_until_green"],
+            }
+        )
+
+    return sorted(summary_rows, key=lambda row: int(row["run_number"]))
+
+
+def build_experiment_stats(summary_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    durations = [float(row["workflow_duration_seconds"]) for row in summary_rows]
+    queue_durations = [float(row["queue_duration_seconds"]) for row in summary_rows]
+    lead_times = [float(row["lead_time_seconds"]) for row in summary_rows]
+    statuses: dict[str, int] = defaultdict(int)
+    failure_types: dict[str, int] = defaultdict(int)
+
+    for row in summary_rows:
+        statuses[str(row["status"])] += 1
+        failure_types[str(row["failure_type"])] += 1
+
+    return {
+        "run_count": len(summary_rows),
+        "status_counts": dict(statuses),
+        "failure_type_counts": dict(failure_types),
+        "workflow_duration_seconds": {
+            "min": min(durations, default=0.0),
+            "max": max(durations, default=0.0),
+            "p50": percentile(durations, 0.50),
+            "p90": percentile(durations, 0.90),
+            "p95": percentile(durations, 0.95),
+        },
+        "queue_duration_seconds": {
+            "min": min(queue_durations, default=0.0),
+            "max": max(queue_durations, default=0.0),
+            "p50": percentile(queue_durations, 0.50),
+            "p90": percentile(queue_durations, 0.90),
+            "p95": percentile(queue_durations, 0.95),
+        },
+        "lead_time_seconds": {
+            "min": min(lead_times, default=0.0),
+            "max": max(lead_times, default=0.0),
+            "p50": percentile(lead_times, 0.50),
+            "p90": percentile(lead_times, 0.90),
+            "p95": percentile(lead_times, 0.95),
+        },
+    }
+
+
 def build_rows(
     client: GitHubClient,
     repo: str,
@@ -154,6 +281,12 @@ def build_rows(
         run_summary = next(iter(summaries_by_job.values()), {})
 
         workflow_duration = seconds_between(run.get("created_at"), run.get("updated_at"))
+        run_created_at = parse_time(run.get("created_at"))
+        first_job_started_at = min(
+            (started for started in (parse_time(job.get("started_at")) for job in jobs) if started),
+            default=None,
+        )
+        queue_duration = seconds_between_datetimes(run_created_at, first_job_started_at)
         commit = run.get("head_commit") or {}
         commit_timestamp = commit.get("timestamp")
         lead_time = seconds_between(commit_timestamp, run.get("updated_at"))
@@ -170,6 +303,7 @@ def build_rows(
                 "commit_message": (commit.get("message") or "").splitlines()[0],
                 "status": conclusion,
                 "workflow_duration_seconds": workflow_duration,
+                "queue_duration_seconds": queue_duration,
                 "job_name": job_name,
                 "job_status": job.get("conclusion") or job.get("status"),
                 "job_duration_seconds": seconds_between(
@@ -230,6 +364,9 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=20, help="Quantidade maxima de runs.")
     parser.add_argument("--output", default="data/pipeline_metrics.csv")
     parser.add_argument("--json-output", default="data/pipeline_metrics.json")
+    parser.add_argument("--summary-output", default="data/pipeline_run_summary.csv")
+    parser.add_argument("--summary-json-output", default="data/pipeline_run_summary.json")
+    parser.add_argument("--stats-output", default="data/pipeline_stats.json")
     parser.add_argument("--download-artifacts", action="store_true")
     parser.add_argument("--token", default=os.environ.get("GITHUB_TOKEN"))
     args = parser.parse_args()
@@ -237,17 +374,32 @@ def main() -> int:
     client = GitHubClient(args.token)
     runs = fetch_runs(client, args.repo, args.workflow, args.branch, args.limit)
     rows = build_rows(client, args.repo, runs, args.download_artifacts)
+    summary_rows = build_run_summary_rows(rows)
+    stats = build_experiment_stats(summary_rows)
 
     write_csv(Path(args.output), rows)
+    write_csv(Path(args.summary_output), summary_rows)
     Path(args.json_output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.json_output).write_text(
         json.dumps(rows, indent=2, ensure_ascii=True), encoding="utf-8"
     )
+    Path(args.summary_json_output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.summary_json_output).write_text(
+        json.dumps(summary_rows, indent=2, ensure_ascii=True), encoding="utf-8"
+    )
+    Path(args.stats_output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.stats_output).write_text(
+        json.dumps(stats, indent=2, ensure_ascii=True), encoding="utf-8"
+    )
 
     print(f"Runs processadas: {len(runs)}")
     print(f"Linhas geradas: {len(rows)}")
+    print(f"Resumo por run: {len(summary_rows)}")
     print(f"CSV: {args.output}")
     print(f"JSON: {args.json_output}")
+    print(f"Resumo CSV: {args.summary_output}")
+    print(f"Resumo JSON: {args.summary_json_output}")
+    print(f"Stats JSON: {args.stats_output}")
     return 0
 
 

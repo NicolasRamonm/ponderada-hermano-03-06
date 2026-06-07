@@ -20,6 +20,23 @@ def first_failure_type(values: pd.Series) -> str:
     return non_empty[0] if non_empty else "none"
 
 
+def annotate_percentiles(runs: pd.DataFrame, output_dir: Path) -> None:
+    stats = (
+        runs["workflow_duration_seconds"]
+        .quantile([0.5, 0.9, 0.95])
+        .rename(index={0.5: "p50", 0.9: "p90", 0.95: "p95"})
+    )
+    lines = ["# Resumo estatistico dos runs", ""]
+    lines.append(f"- Total de execucoes: {len(runs)}")
+    lines.append(f"- Sucessos: {(runs['status'] == 'success').sum()}")
+    lines.append(f"- Falhas: {(runs['status'] == 'failure').sum()}")
+    for label, value in stats.items():
+        lines.append(f"- Duracao {label}: {value:.1f}s")
+    lines.append(f"- Menor duracao: {runs['workflow_duration_seconds'].min():.1f}s")
+    lines.append(f"- Maior duracao: {runs['workflow_duration_seconds'].max():.1f}s")
+    (output_dir / "chart_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def save_current(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
@@ -47,14 +64,20 @@ def main() -> int:
             scenario=("scenario", first_non_empty),
             status=("status", "first"),
             workflow_duration_seconds=("workflow_duration_seconds", "first"),
+            queue_duration_seconds=("queue_duration_seconds", "first"),
+            lead_time_seconds=("lead_time_seconds", "first"),
             timestamp=("timestamp", "first"),
             test_count=("test_count", "max"),
             failure_type=("failure_type", first_failure_type),
             execution_mode=("execution_mode", first_non_empty),
+            install_duration_seconds=("install_duration_seconds", "max"),
+            lint_duration_seconds=("lint_duration_seconds", "max"),
+            test_duration_seconds=("test_duration_seconds", "max"),
         )
         .sort_values("timestamp")
     )
     runs["label"] = runs["run_number"].astype(str) + " - " + runs["scenario"].fillna("")
+    annotate_percentiles(runs, output_dir)
 
     plt.figure(figsize=(12, 5))
     colors = [STATUS_COLORS.get(status, "#455A64") for status in runs["status"]]
@@ -63,6 +86,21 @@ def main() -> int:
     plt.ylabel("Duracao total (s)")
     plt.title("Tempo total do pipeline por execucao")
     save_current(output_dir / "pipeline_duration_by_run.png")
+
+    plt.figure(figsize=(12, 5))
+    plt.plot(runs["label"], runs["workflow_duration_seconds"], marker="o", color="#1565C0")
+    plt.axhline(
+        runs["workflow_duration_seconds"].median(),
+        color="#546E7A",
+        linestyle="--",
+        linewidth=1,
+        label="mediana",
+    )
+    plt.xticks(rotation=45, ha="right")
+    plt.ylabel("Duracao total (s)")
+    plt.title("Tendencia de duracao do pipeline")
+    plt.legend()
+    save_current(output_dir / "pipeline_duration_trend.png")
 
     job_pivot = active_jobs.pivot_table(
         index="run_number",
@@ -76,6 +114,18 @@ def main() -> int:
     plt.title("Tempo por job")
     plt.xticks(rotation=45, ha="right")
     save_current(output_dir / "job_duration_by_run.png")
+
+    if not runs["execution_mode"].empty:
+        groups = [
+            group["workflow_duration_seconds"].to_numpy()
+            for _, group in runs.groupby("execution_mode")
+        ]
+        labels = [mode or "desconhecido" for mode in runs.groupby("execution_mode").groups]
+        plt.figure(figsize=(8, 5))
+        plt.boxplot(groups, tick_labels=labels)
+        plt.ylabel("Duracao total (s)")
+        plt.title("Distribuicao da duracao por modo de execucao")
+        save_current(output_dir / "workflow_duration_by_mode_boxplot.png")
 
     status_counts = runs["status"].value_counts().sort_index()
     plt.figure(figsize=(7, 5))
@@ -103,6 +153,67 @@ def main() -> int:
     plt.title("Relacao entre quantidade de testes e duracao")
     plt.legend(title="Modo")
     save_current(output_dir / "tests_vs_pipeline_duration.png")
+
+    breakdown = runs[
+        [
+            "run_number",
+            "scenario",
+            "workflow_duration_seconds",
+            "queue_duration_seconds",
+            "install_duration_seconds",
+            "lint_duration_seconds",
+            "test_duration_seconds",
+        ]
+    ].copy()
+    known_steps = (
+        breakdown["queue_duration_seconds"]
+        + breakdown["install_duration_seconds"]
+        + breakdown["lint_duration_seconds"]
+        + breakdown["test_duration_seconds"]
+    )
+    breakdown["overhead_seconds"] = (breakdown["workflow_duration_seconds"] - known_steps).clip(
+        lower=0
+    )
+    breakdown["label"] = (
+        breakdown["run_number"].astype(str) + " - " + breakdown["scenario"].astype(str)
+    )
+    breakdown.set_index("label")[
+        [
+            "queue_duration_seconds",
+            "install_duration_seconds",
+            "lint_duration_seconds",
+            "test_duration_seconds",
+            "overhead_seconds",
+        ]
+    ].plot(kind="bar", stacked=True, figsize=(12, 5), width=0.8)
+    plt.ylabel("Segundos")
+    plt.title("Decomposicao aproximada do tempo por execucao")
+    plt.xticks(rotation=45, ha="right")
+    save_current(output_dir / "step_time_breakdown.png")
+
+    heatmap = breakdown.set_index("label")[
+        [
+            "queue_duration_seconds",
+            "install_duration_seconds",
+            "lint_duration_seconds",
+            "test_duration_seconds",
+            "overhead_seconds",
+        ]
+    ]
+    plt.figure(figsize=(10, 6))
+    plt.imshow(heatmap.to_numpy(), aspect="auto", cmap="YlGnBu")
+    plt.colorbar(label="Segundos")
+    plt.xticks(range(len(heatmap.columns)), heatmap.columns, rotation=35, ha="right")
+    plt.yticks(range(len(heatmap.index)), heatmap.index)
+    plt.title("Heatmap de etapas por execucao")
+    save_current(output_dir / "step_duration_heatmap.png")
+
+    plt.figure(figsize=(12, 5))
+    plt.bar(runs["label"], runs["queue_duration_seconds"], color="#6A1B9A")
+    plt.xticks(rotation=45, ha="right")
+    plt.ylabel("Tempo de fila (s)")
+    plt.title("Tempo entre criacao do run e inicio do primeiro job")
+    save_current(output_dir / "queue_time_by_run.png")
 
     cache_df = active_jobs[active_jobs["install_duration_seconds"] > 0].copy()
     if not cache_df.empty:

@@ -8,7 +8,11 @@
 - Script de coleta: [`scripts/collect_metrics.py`](../scripts/collect_metrics.py)
 - Base CSV: [`data/pipeline_metrics.csv`](../data/pipeline_metrics.csv)
 - Base JSON: [`data/pipeline_metrics.json`](../data/pipeline_metrics.json)
+- Resumo por execucao CSV: [`data/pipeline_run_summary.csv`](../data/pipeline_run_summary.csv)
+- Resumo por execucao JSON: [`data/pipeline_run_summary.json`](../data/pipeline_run_summary.json)
+- Estatisticas consolidadas: [`data/pipeline_stats.json`](../data/pipeline_stats.json)
 - Script de graficos: [`scripts/generate_charts.py`](../scripts/generate_charts.py)
+- Checklist de requisitos: [`reports/checklist.md`](./checklist.md)
 
 ## Hipotese inicial
 
@@ -82,12 +86,27 @@ O script `collect_metrics.py` consulta a API do GitHub Actions, baixa os artefat
 
 ![Frequencia de falhas por tipo](../charts/failure_frequency_by_type.png)
 
+Graficos adicionais para aprofundamento:
+
+![Tendencia de duracao do pipeline](../charts/pipeline_duration_trend.png)
+
+![Boxplot por modo de execucao](../charts/workflow_duration_by_mode_boxplot.png)
+
+![Decomposicao aproximada do tempo](../charts/step_time_breakdown.png)
+
+![Heatmap de etapas por execucao](../charts/step_duration_heatmap.png)
+
+![Tempo de fila por execucao](../charts/queue_time_by_run.png)
+
 ## Resultados quantitativos
 
 - Foram 12 execucoes reais: 11 com sucesso e 1 com falha.
 - A unica falha foi do tipo `test`, causada por `intentional_failure=true`.
 - O tempo total variou de 30s a 37s.
+- A duracao teve p50 de 35s, p90 de 36s e p95 de 36,45s.
+- O tempo de fila variou de 1s a 3s, com p50 de 2s.
 - O lead time entre commit e conclusao variou de 33s a 45s.
+- O lead time teve p50 de 38s, p90 de 40s e p95 de 42,25s.
 - O job `read-config` durou em media 3,83s.
 - Os jobs paralelos de lint e testes duraram em media 24,20s e 23,60s.
 - O job sequencial durou em media 26,50s.
@@ -154,6 +173,19 @@ A analise mostra onde otimizar primeiro. Neste caso, acelerar testes nao mudaria
 
 A hipotese de que cache ajudaria foi confirmada na etapa de instalacao, mas nao de forma forte no tempo total. A hipotese de que paralelismo reduziria significativamente a duracao nao se confirmou para este projeto, porque o custo de duplicar setup e instalacao nos jobs paralelos anulou boa parte do beneficio. A hipotese de que mais testes aumentariam o tempo total tambem nao se confirmou claramente, pois o custo dos testes foi pequeno diante do overhead do pipeline.
 
+## Incrementos alem do minimo
+
+Para fortalecer a entrega alem do enunciado minimo, foram adicionados:
+
+- resumo agregado por execucao em `pipeline_run_summary.csv` e `pipeline_run_summary.json`;
+- estatisticas consolidadas em `pipeline_stats.json`, incluindo p50, p90 e p95;
+- metrica de tempo de fila entre criacao do run e inicio do primeiro job;
+- grafico de tendencia temporal;
+- boxplot de duracao por modo de execucao;
+- decomposicao aproximada do tempo por etapa;
+- heatmap das etapas por execucao;
+- checklist de rastreabilidade entre requisitos e evidencias.
+
 ## Reproducao
 
 ```bash
@@ -173,6 +205,9 @@ python scripts/collect_metrics.py \
   --limit 12 \
   --output data/pipeline_metrics.csv \
   --json-output data/pipeline_metrics.json \
+  --summary-output data/pipeline_run_summary.csv \
+  --summary-json-output data/pipeline_run_summary.json \
+  --stats-output data/pipeline_stats.json \
   --download-artifacts
 
 python scripts/generate_charts.py \

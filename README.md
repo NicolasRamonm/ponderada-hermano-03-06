@@ -23,6 +23,7 @@ O experimento inclui:
 - `scripts/collect_metrics.py`: consulta GitHub Actions e gera CSV/JSON com métricas.
 - `scripts/generate_charts.py`: gera gráficos a partir da base coletada.
 - `reports/relatorio.md`: relatório técnico do experimento.
+- `reports/checklist.md`: rastreabilidade entre requisitos e evidências.
 
 ## Execução local
 
@@ -45,6 +46,9 @@ python scripts/collect_metrics.py \
   --limit 30 \
   --output data/pipeline_metrics.csv \
   --json-output data/pipeline_metrics.json \
+  --summary-output data/pipeline_run_summary.csv \
+  --summary-json-output data/pipeline_run_summary.json \
+  --stats-output data/pipeline_stats.json \
   --download-artifacts
 ```
 
