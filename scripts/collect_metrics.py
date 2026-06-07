@@ -106,6 +106,12 @@ def step_duration(summary: dict[str, Any] | None, name: str) -> float:
     return 0.0
 
 
+def normalize_cache_hit(summary: dict[str, Any] | None) -> str:
+    if not summary:
+        return ""
+    return "true" if str(summary.get("cache_hit", "")).lower() == "true" else "false"
+
+
 def build_rows(
     client: GitHubClient,
     repo: str,
@@ -145,6 +151,8 @@ def build_rows(
                 summaries_by_job[job_name] = summary
                 artifact_size_by_job[job_name] += artifact_size
 
+        run_summary = next(iter(summaries_by_job.values()), {})
+
         workflow_duration = seconds_between(run.get("created_at"), run.get("updated_at"))
         commit = run.get("head_commit") or {}
         commit_timestamp = commit.get("timestamp")
@@ -178,10 +186,10 @@ def build_rows(
                 "completed_at": run.get("updated_at", ""),
                 "lead_time_seconds": lead_time,
                 "artifact_size_bytes": artifact_size_by_job.get(job_name, 0),
-                "cache_hit": str((summary or {}).get("cache_hit", "")),
-                "cache_buster": str((summary or {}).get("cache_buster", "")),
-                "scenario": str((summary or {}).get("scenario", "")),
-                "execution_mode": str((summary or {}).get("execution_mode", "")),
+                "cache_hit": normalize_cache_hit(summary),
+                "cache_buster": str((summary or run_summary).get("cache_buster", "")),
+                "scenario": str((summary or run_summary).get("scenario", "")),
+                "execution_mode": str((summary or run_summary).get("execution_mode", "")),
                 "failure_type": str((summary or {}).get("failure_type", "")),
                 "attempts_until_green": attempt_until_green,
             }

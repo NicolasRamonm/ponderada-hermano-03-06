@@ -9,6 +9,17 @@ import pandas as pd
 STATUS_COLORS = {"success": "#2E7D32", "failure": "#C62828", "cancelled": "#6A737D"}
 
 
+def first_non_empty(values: pd.Series) -> object:
+    non_empty = values.dropna()
+    non_empty = non_empty[non_empty.astype(str) != ""]
+    return non_empty.iloc[0] if not non_empty.empty else ""
+
+
+def first_failure_type(values: pd.Series) -> str:
+    non_empty = [str(value) for value in values.dropna() if str(value) not in {"", "none"}]
+    return non_empty[0] if non_empty else "none"
+
+
 def save_current(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
@@ -27,10 +38,20 @@ def main() -> int:
         raise SystemExit("Base de dados vazia.")
 
     output_dir = Path(args.output_dir)
+    active_jobs = df[df["job_status"] != "skipped"].copy()
     runs = (
-        df.sort_values(["timestamp", "run_id"])
+        active_jobs.sort_values(["timestamp", "run_id"])
         .groupby("run_id", as_index=False)
-        .first()
+        .agg(
+            run_number=("run_number", "first"),
+            scenario=("scenario", first_non_empty),
+            status=("status", "first"),
+            workflow_duration_seconds=("workflow_duration_seconds", "first"),
+            timestamp=("timestamp", "first"),
+            test_count=("test_count", "max"),
+            failure_type=("failure_type", first_failure_type),
+            execution_mode=("execution_mode", first_non_empty),
+        )
         .sort_values("timestamp")
     )
     runs["label"] = runs["run_number"].astype(str) + " - " + runs["scenario"].fillna("")
@@ -43,7 +64,7 @@ def main() -> int:
     plt.title("Tempo total do pipeline por execucao")
     save_current(output_dir / "pipeline_duration_by_run.png")
 
-    job_pivot = df.pivot_table(
+    job_pivot = active_jobs.pivot_table(
         index="run_number",
         columns="job_name",
         values="job_duration_seconds",
@@ -67,18 +88,7 @@ def main() -> int:
     plt.title("Taxa de sucesso e falha")
     save_current(output_dir / "success_failure_rate.png")
 
-    tests_by_run = (
-        df.groupby("run_id", as_index=False)
-        .agg(
-            run_number=("run_number", "first"),
-            scenario=("scenario", "first"),
-            status=("status", "first"),
-            workflow_duration_seconds=("workflow_duration_seconds", "first"),
-            test_count=("test_count", "max"),
-            execution_mode=("execution_mode", "first"),
-        )
-        .sort_values("run_number")
-    )
+    tests_by_run = runs.sort_values("run_number")
     plt.figure(figsize=(9, 5))
     for mode, group in tests_by_run.groupby("execution_mode"):
         plt.scatter(
@@ -94,7 +104,7 @@ def main() -> int:
     plt.legend(title="Modo")
     save_current(output_dir / "tests_vs_pipeline_duration.png")
 
-    cache_df = df[df["install_duration_seconds"] > 0].copy()
+    cache_df = active_jobs[active_jobs["install_duration_seconds"] > 0].copy()
     if not cache_df.empty:
         plt.figure(figsize=(8, 5))
         cache_df.boxplot(column="install_duration_seconds", by="cache_hit")
