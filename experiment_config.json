@@ -1,9 +1,9 @@
 {
-  "scenario": "parallel-more-tests-60",
+  "scenario": "cache-hit-after-bust",
   "execution_mode": "parallel",
-  "extra_test_cases": 60,
+  "extra_test_cases": 0,
   "slow_test_ms": 0,
   "intentional_failure": false,
   "cache_buster": "v2",
-  "notes": "Execucao paralela com 60 casos extras de teste na base sampleproject."
+  "notes": "Repeticao com cache_buster v2 para observar reaproveitamento do cache."
 }
