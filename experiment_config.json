@@ -1,9 +1,9 @@
 {
-  "scenario": "sequential-baseline",
+  "scenario": "sequential-slow",
   "execution_mode": "sequential",
   "extra_test_cases": 0,
-  "slow_test_ms": 0,
+  "slow_test_ms": 1500,
   "intentional_failure": false,
   "cache_buster": "v2",
-  "notes": "Execucao sequencial com lint e testes no mesmo job para comparar com jobs paralelos."
+  "notes": "Execucao sequencial combinada com teste lento para avaliar impacto no tempo total."
 }
