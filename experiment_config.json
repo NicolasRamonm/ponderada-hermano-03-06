@@ -1,9 +1,9 @@
 {
-  "scenario": "recovery-pass",
+  "scenario": "cache-bust",
   "execution_mode": "parallel",
   "extra_test_cases": 0,
   "slow_test_ms": 0,
   "intentional_failure": false,
-  "cache_buster": "v1",
-  "notes": "Recuperacao apos falha controlada na base sampleproject."
+  "cache_buster": "v2",
+  "notes": "Alteracao da chave de cache para forcar nova instalacao de dependencias."
 }
