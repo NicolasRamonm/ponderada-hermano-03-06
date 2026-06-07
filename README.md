@@ -134,7 +134,7 @@ python scripts/generate_charts.py \
   --output-dir charts
 ```
 
-## Como conferir se o must-do foi atendido
+## Envidências
 
 Após a coleta e atualização do relatório, confira:
 
@@ -148,5 +148,3 @@ Depois abra:
 
 - [`reports/checklist.md`](reports/checklist.md)
 - [`reports/relatorio.md`](reports/relatorio.md)
-
-O checklist aponta cada requisito do `must-do.md` para uma evidência concreta no repositório.
