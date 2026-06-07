@@ -53,13 +53,13 @@ ruff check src tests scripts
 pytest -q
 ```
 
-Resultado esperado no cenário padrão:
+Resultado esperado com o `experiment_config.json` versionado atualmente (`final-green`, com 10 casos extras):
 
 ```text
-9 passed
+19 passed
 ```
 
-O número de testes muda quando `experiment_config.json` aumenta `extra_test_cases`.
+Com `extra_test_cases` igual a `0`, a base executa 9 testes. O número muda quando `experiment_config.json` aumenta `extra_test_cases`.
 
 ## Como testar variações localmente
 
