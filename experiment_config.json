@@ -1,9 +1,9 @@
 {
-  "scenario": "baseline-cache-hit",
+  "scenario": "more-tests-25",
   "execution_mode": "parallel",
-  "extra_test_cases": 0,
+  "extra_test_cases": 25,
   "slow_test_ms": 0,
   "intentional_failure": false,
   "cache_buster": "v1",
-  "notes": "Repeticao do baseline para medir reaproveitamento de cache em jobs paralelos."
+  "notes": "Aumento artificial da quantidade de testes para observar impacto na duracao."
 }
