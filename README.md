@@ -45,7 +45,7 @@ Essa base pequena foi escolhida porque permite executar um pipeline real com ins
 Use Python 3.11 ou superior.
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
@@ -113,7 +113,7 @@ Exemplo de coleta:
 
 ```bash
 export GITHUB_TOKEN="token_com_actions_read"
-python scripts/collect_metrics.py \
+python3 scripts/collect_metrics.py \
   --repo NicolasRamonm/ponderada-hermano-03-06 \
   --workflow ci-metrics.yml \
   --branch experimento-ci-base-livre \
@@ -129,19 +129,19 @@ python scripts/collect_metrics.py \
 Geração dos gráficos:
 
 ```bash
-python scripts/generate_charts.py \
+python3 scripts/generate_charts.py \
   --input data/pipeline_metrics.csv \
   --output-dir charts
 ```
 
-## Envidências
+## Evidências
 
 Após a coleta e atualização do relatório, confira:
 
 ```bash
 ruff check src tests scripts
 pytest -q
-python scripts/generate_charts.py --input data/pipeline_metrics.csv --output-dir charts
+python3 scripts/generate_charts.py --input data/pipeline_metrics.csv --output-dir charts
 ```
 
 Depois abra:

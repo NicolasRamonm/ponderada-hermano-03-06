@@ -187,7 +187,7 @@ A hipótese de que cache ajudaria foi confirmada na etapa de instalação. A hip
 ## Reprodução
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
@@ -199,7 +199,7 @@ Depois de executar o workflow no GitHub Actions:
 
 ```bash
 export GITHUB_TOKEN="token_com_actions_read"
-python scripts/collect_metrics.py \
+python3 scripts/collect_metrics.py \
   --repo NicolasRamonm/ponderada-hermano-03-06 \
   --workflow ci-metrics.yml \
   --branch experimento-ci-base-livre \
@@ -211,7 +211,7 @@ python scripts/collect_metrics.py \
   --stats-output data/pipeline_stats.json \
   --download-artifacts
 
-python scripts/generate_charts.py \
+python3 scripts/generate_charts.py \
   --input data/pipeline_metrics.csv \
   --output-dir charts
 ```

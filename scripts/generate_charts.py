@@ -122,7 +122,7 @@ def main() -> int:
         ]
         labels = [mode or "desconhecido" for mode in runs.groupby("execution_mode").groups]
         plt.figure(figsize=(8, 5))
-        plt.boxplot(groups, tick_labels=labels)
+        plt.boxplot(groups, labels=labels)
         plt.ylabel("Duracao total (s)")
         plt.title("Distribuicao da duracao por modo de execucao")
         save_current(output_dir / "workflow_duration_by_mode_boxplot.png")
