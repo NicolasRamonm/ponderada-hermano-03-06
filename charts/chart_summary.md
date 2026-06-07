@@ -1,10 +1,10 @@
-# Resumo estatistico dos runs
+# Resumo estatístico dos runs
 
-- Total de execucoes: 12
+- Total de execuções: 12
 - Sucessos: 11
 - Falhas: 1
-- Duracao p50: 34.5s
-- Duracao p90: 36.9s
-- Duracao p95: 37.5s
-- Menor duracao: 29.0s
-- Maior duracao: 38.0s
+- Duração p50: 34.5s
+- Duração p90: 36.9s
+- Duração p95: 37.5s
+- Menor duração: 29.0s
+- Maior duração: 38.0s

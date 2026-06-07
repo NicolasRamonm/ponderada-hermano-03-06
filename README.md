@@ -100,7 +100,7 @@ Também pode ser disparado manualmente por `workflow_dispatch` na interface do G
 
 ## Como reproduzir o experimento completo
 
-1. Use a branch de experimento publicada, `experimento-ci-base-livre`, ou `main` apos o merge.
+1. Use a branch de experimento publicada, `experimento-ci-base-livre`, ou `main` após o merge.
 2. Faça um commit inicial com o cenário `baseline-pass`.
 3. Altere `experiment_config.json` para cada variação controlada.
 4. Faça um commit e um push por variação.
