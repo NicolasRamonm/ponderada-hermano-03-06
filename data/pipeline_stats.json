@@ -1,0 +1,32 @@
+{
+  "run_count": 12,
+  "status_counts": {
+    "success": 11,
+    "failure": 1
+  },
+  "failure_type_counts": {
+    "none": 11,
+    "test": 1
+  },
+  "workflow_duration_seconds": {
+    "min": 30.0,
+    "max": 37.0,
+    "p50": 35.0,
+    "p90": 36.0,
+    "p95": 36.45
+  },
+  "queue_duration_seconds": {
+    "min": 1.0,
+    "max": 3.0,
+    "p50": 2.0,
+    "p90": 2.0,
+    "p95": 2.45
+  },
+  "lead_time_seconds": {
+    "min": 33.0,
+    "max": 45.0,
+    "p50": 38.0,
+    "p90": 40.0,
+    "p95": 42.25
+  }
+}
