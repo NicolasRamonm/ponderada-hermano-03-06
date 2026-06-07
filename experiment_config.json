@@ -1,9 +1,9 @@
 {
-  "scenario": "slow-test-1500ms",
+  "scenario": "controlled-failure",
   "execution_mode": "parallel",
   "extra_test_cases": 0,
-  "slow_test_ms": 1500,
-  "intentional_failure": false,
+  "slow_test_ms": 0,
+  "intentional_failure": true,
   "cache_buster": "v1",
-  "notes": "Introducao de atraso artificial de 1500 ms em um teste para medir gargalo."
+  "notes": "Falha intencional de teste para medir frequencia de falha e tentativa ate voltar a verde."
 }
