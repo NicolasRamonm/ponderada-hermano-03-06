@@ -3,12 +3,13 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pipeline-lab"
+name = "sampleproject-ci-metrics"
 version = "0.1.0"
-description = "Projeto pequeno para experimento de métricas de CI/CD."
+description = "Experimento de métricas de CI/CD baseado no PyPA sampleproject."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+license = { file = "LICENSE.txt" }
+dependencies = ["peppercorn>=0.6"]
 
 [project.optional-dependencies]
 dev = [
@@ -21,6 +22,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+sample = ["*.dat"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

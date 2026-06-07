@@ -1,20 +1,23 @@
 # Checklist de rastreabilidade dos requisitos
 
-Este arquivo mapeia cada requisito do enunciado para a evidencia correspondente no repositorio.
+Este arquivo mapeia cada requisito do `must-do.md` para a evidencia correspondente no repositorio.
 
 | Requisito | Status | Evidencia |
 |---|---|---|
 | Link do repositorio GitHub | Feito | <https://github.com/NicolasRamonm/ponderada-hermano-03-06> |
+| Projeto pequeno existente e livre como base | Feito | PyPA `sampleproject`, documentado em [`PROJECT_BASE.md`](../PROJECT_BASE.md) |
+| Licenca do projeto-base preservada | Feito | [`LICENSE.txt`](../LICENSE.txt) |
 | Pipeline no GitHub Actions | Feito | [`.github/workflows/ci-metrics.yml`](../.github/workflows/ci-metrics.yml) |
-| Instalacao de dependencias | Feito | Job `Install dependencies` no workflow |
-| Lint ou analise estatica | Feito | Job/etapa `Lint` com Ruff |
-| Testes automatizados | Feito | Pytest em [`tests/test_calculator.py`](../tests/test_calculator.py) |
+| README permite rodar e testar | Feito | [`README.md`](../README.md), secoes "Como rodar localmente" e "Como reproduzir o experimento completo" |
+| Instalacao de dependencias | Feito | Etapa `Install dependencies` no workflow |
+| Lint ou analise estatica | Feito | Etapa `Lint` com Ruff |
+| Testes automatizados | Feito | [`tests/test_sample.py`](../tests/test_sample.py) |
 | Artefato com resultados | Feito | `actions/upload-artifact` publica `ci_summary.json`, `junit.xml` e `step_metrics.jsonl` |
 | Coleta de metricas do pipeline | Feito | [`scripts/collect_metrics.py`](../scripts/collect_metrics.py) |
 | Pelo menos 12 execucoes reais | Feito | 12 run IDs reais em [`reports/relatorio.md`](./relatorio.md) |
 | Variacoes controladas | Feito | `experiment_config.json` variado por commit; tabela no relatorio |
 | Teste passando | Feito | Runs `baseline-pass`, `recovery-pass`, `final-green` |
-| Teste falhando | Feito | Run `controlled-failure`, ID `27101403237` |
+| Teste falhando | Feito | Run `controlled-failure`, ID `27102200902` |
 | Aumento artificial da quantidade de testes | Feito | Runs `more-tests-25` e `parallel-more-tests-60` |
 | Teste lento | Feito | Runs `slow-test-1500ms` e `sequential-slow` |
 | Alteracao no cache | Feito | Runs `cache-bust` e `cache-hit-after-bust` |
@@ -42,14 +45,14 @@ Este arquivo mapeia cada requisito do enunciado para a evidencia correspondente 
 | Grafico testes vs duracao | Feito | [`charts/tests_vs_pipeline_duration.png`](../charts/tests_vs_pipeline_duration.png) |
 | Relatorio tecnico Markdown | Feito | [`reports/relatorio.md`](./relatorio.md) |
 | Links das execucoes reais | Feito | Secao "Execucoes reais do GitHub Actions" do relatorio |
-| IDs reais dos workflows | Feito | Run IDs `27101381991` a `27101435614` no relatorio |
+| IDs reais dos workflows | Feito | Run IDs `27102177249` a `27102240744` no relatorio |
 | Commits reais usados | Feito | Secao "Commits usados" do relatorio |
 | Explicacao das variacoes | Feito | Secoes "Desenho do experimento" e "Execucoes reais" |
 | Graficos a partir dos dados coletados | Feito | Arquivos em [`charts/`](../charts) gerados por `generate_charts.py` |
 | Dois resultados inesperados | Feito | Secao "Resultados inesperados" possui tres itens |
 | Hipotese vs resultado observado | Feito | Secao "Comparacao entre hipotese e resultado observado" |
 | Limitacoes do experimento | Feito | Subsecao "Quais limitacoes existem nos dados coletados?" |
-| Padrao de branch sem Codex | Feito | Branch `experimento-ci-metricas` |
+| Padrao de branch sem Codex | Feito | Branch `experimento-ci-base-livre` |
 | Commits ligados a conta do aluno | Feito | Commits autorados por `Nicolas Ramon da Silva <nnicolasramonn@gmail.com>` |
 
 ## Evidencias adicionais alem do minimo
