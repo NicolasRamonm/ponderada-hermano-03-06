@@ -1,9 +1,9 @@
 {
-  "scenario": "controlled-failure",
+  "scenario": "recovery-pass",
   "execution_mode": "parallel",
   "extra_test_cases": 0,
   "slow_test_ms": 0,
-  "intentional_failure": true,
+  "intentional_failure": false,
   "cache_buster": "v1",
-  "notes": "Falha intencional de teste para medir frequencia de falha e tentativa ate voltar a verde."
+  "notes": "Recuperacao apos falha controlada para medir numero de tentativas ate o pipeline verde."
 }
